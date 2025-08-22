@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 								Password <sup class="fs-12 text-danger">*</sup>
 						 </label>
 						 <div style="display: flex; align-items: center; gap: 8px;">
-							 <input id="signin-password" name="password" placeholder="Enter your password" type="password" required style="flex:1;">
+							 <input id="signin-password" name="password" placeholder="Enter your password" type="password" autocomplete="off" style="flex:1;">
 							 <button class="show-password-button" type="button" onclick="createpassword('signin-password', this)" tabindex="-1" style="position:static; margin-left:-8px; margin-top:25px;">
 								 <span><i class="ri-eye-off-line align-middle"></i></span>
 							 </button>
