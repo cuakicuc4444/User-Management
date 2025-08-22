@@ -1,0 +1,71 @@
+<div class="col-xl-6">
+  <div class="p-3">
+    <form method="post" action="login.php">
+      <div class="row gy-3">
+
+        <!-- Email -->
+        <div class="col-xl-12">
+          <label class="form-label text-default" for="signin-email">
+            Email Address <sup class="fs-12 text-danger">*</sup>
+          </label>
+          <input class="form-control signin-email-input" 
+                 id="signin-email" 
+                 name="username" 
+                 placeholder="Enter your email address" 
+                 type="email" 
+                 required>
+        </div>
+
+        <!-- Password -->
+        <div class="col-xl-12">
+          <label class="form-label text-default" for="signin-password">
+            Password <sup class="fs-12 text-danger">*</sup>
+          </label>
+          <div class="input-group">
+            <input class="form-control signin-password-input" 
+                   id="signin-password" 
+                   name="password" 
+                   placeholder="Enter your password" 
+                   type="password" 
+                   required>
+            <button class="btn btn-primary-light show-password-button" 
+                    type="button" 
+                    onclick="createpassword('signin-password', this)">
+              <i class="ri-eye-off-line align-middle"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember Me + Forgot -->
+        <div class="col-xl-12">
+          <div class="form-check d-flex justify-content-between">
+            <div>
+              <input class="form-check-input" type="checkbox" value="1" id="rememberMe" name="remember">
+              <label class="form-check-label text-muted fw-normal fs-12" for="rememberMe">
+                Remember me
+              </label>
+            </div>
+            <a href="reset-password-basic.html" class="text-success fw-medium fs-12">
+              Forgot Password?
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit button -->
+      <div class="d-grid mt-4">
+        <button type="submit" class="btn btn-primary">
+          <i class="ri-login-circle-line lh-1 me-2 align-middle"></i> Sign In
+        </button>
+      </div>
+    </form>
+
+    <!-- Sign Up -->
+    <div class="text-center">
+      <p class="text-muted mt-3 mb-0">
+        Don't have an account?
+        <a class="text-primary fw-medium text-decoration-underline" href="sign-up-basic.html">Sign Up</a>
+      </p>
+    </div>
+  </div>
+</div>
