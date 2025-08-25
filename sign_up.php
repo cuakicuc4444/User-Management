@@ -63,9 +63,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
-  <link rel="stylesheet" href="style2.css">
+  <!-- <link rel="stylesheet" href="style2.css"> -->
+  	<link rel="stylesheet" href="/user/style2.css">
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/user/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <!-- Remixicon CDN -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 </head>
@@ -104,9 +107,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input class="form-check-input" type="checkbox" id="termsCheck">
             <label class="form-check-label text-muted fw-normal fs-11" for="termsCheck" style="font-size:15px;">
               By creating an account, you agree to our 
-              <a href="terms-conditions.html" class="text-success"><u>Terms &amp; Conditions</u></a> 
+              <a href="https://www.google.com/intl/en/policies/terms/" class="text-success"><u>Terms &amp; Conditions</u></a> 
               and 
-              <a href="javascript:void(0);" class="text-success"><u>Privacy Policy</u></a>
+              <a href="https://policies.google.com/privacy" class="text-success"><u>Privacy Policy</u></a>
             </label>
           </div>
           <button type="submit" class="btn-primary" id="signup-btn" style="font-size:20px;font-weight:600;border-radius:10px;padding:13px 0;">
@@ -116,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="text-center">
           <p class="text-muted mt-3 mb-0" style="font-size:16px;">
             Already have an account? 
-            <a class="text-primary fw-medium text-decoration-underline" href="sign_in.php">
+            <a class="text-primary fw-medium text-decoration-underline" href="/sign_in">
               Sign In
             </a>
           </p>

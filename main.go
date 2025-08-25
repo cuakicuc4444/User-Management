@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,26 +10,29 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type User struct {
-	ID         int    `json:"id"`
-	Username   string `json:"user_name"`
-	FirstName  string `json:"first_name"`
-	LastName   string `json:"last_name"`
-	Email      string `json:"email"`
-	Status     string `json:"status"`
-	TimeCreate string `json:"time_create"`
-	DeletedAt  string `json:"deleted_at,omitempty"`
+	ID         int        `json:"id"`
+	UserName   string     `json:"user_name"`
+	FirstName  string     `json:"first_name"`
+	LastName   string     `json:"last_name"`
+	Email      string     `json:"email"`
+	Status     string     `json:"status"`
+	TimeCreate time.Time  `json:"time_create"`
+	DeletedAt  *time.Time `json:"deleted_at,omitempty"`
+}
+type Account struct {
+	ID        int       `json:"id"`
+	UserName  string    `json:"user_name"`
+	Email     string    `json:"email"`
+	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
-type Account struct {
-	ID        int    `json:"id"`
-	UserName  string `json:"user_name"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-	CreatedAt string `json:"created_at"`
-}
+var db *sql.DB
 
 func enableCORS(w http.ResponseWriter, r *http.Request) bool {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -41,9 +45,6 @@ func enableCORS(w http.ResponseWriter, r *http.Request) bool {
 	return false
 }
 
-var accounts []Account
-var currentAccountID int = 1
-
 func isAccountEmailValid(email string) bool {
 	emailCheck := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return emailCheck.MatchString(email)
@@ -51,6 +52,21 @@ func isAccountEmailValid(email string) bool {
 
 func getAccounts(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	rows, err := db.Query("SELECT id, user_name, email, password, created_at FROM accounts")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	var accounts []Account
+	for rows.Next() {
+		var acc Account
+		if err := rows.Scan(&acc.ID, &acc.UserName, &acc.Email, &acc.Password, &acc.CreatedAt); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		accounts = append(accounts, acc)
+	}
 	json.NewEncoder(w).Encode(accounts)
 }
 
@@ -69,31 +85,31 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid email", http.StatusBadRequest)
 		return
 	}
-	for _, a := range accounts {
-		if a.Email == acc.Email {
-			http.Error(w, "Email already exists", http.StatusConflict)
-			return
-		}
-		if a.UserName == acc.UserName {
-			http.Error(w, "Username already exists", http.StatusConflict)
-			return
-		}
+	var exists int
+	err := db.QueryRow("SELECT COUNT(*) FROM accounts WHERE email=? OR user_name=?", acc.Email, acc.UserName).Scan(&exists)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	acc.ID = currentAccountID
-	currentAccountID++
-	acc.CreatedAt = time.Now().Format(time.RFC3339)
-	accounts = append(accounts, acc)
+	if exists > 0 {
+		http.Error(w, "Email or Username already exists", http.StatusConflict)
+		return
+	}
+	stmt, err := db.Prepare("INSERT INTO accounts (user_name, email, password) VALUES (?, ?, ?)")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	res, err := stmt.Exec(acc.UserName, acc.Email, acc.Password)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	id, _ := res.LastInsertId()
+	acc.ID = int(id)
+	acc.CreatedAt = time.Now()
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(acc)
-}
-
-func findAccountByID(id int) (*Account, int) {
-	for i, a := range accounts {
-		if a.ID == id {
-			return &accounts[i], i
-		}
-	}
-	return nil, -1
 }
 
 func updateAccount(w http.ResponseWriter, r *http.Request) {
@@ -102,11 +118,6 @@ func updateAccount(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid account ID", http.StatusBadRequest)
-		return
-	}
-	acc, _ := findAccountByID(id)
-	if acc == nil {
-		http.Error(w, "Account not found", http.StatusNotFound)
 		return
 	}
 	var input Account
@@ -118,8 +129,17 @@ func updateAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Password required", http.StatusBadRequest)
 		return
 	}
-	acc.Password = input.Password
-	json.NewEncoder(w).Encode(acc)
+	stmt, err := db.Prepare("UPDATE accounts SET password=? WHERE id=?")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	_, err = stmt.Exec(input.Password, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	json.NewEncoder(w).Encode(input)
 }
 
 func deleteAccount(w http.ResponseWriter, r *http.Request) {
@@ -130,20 +150,40 @@ func deleteAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid account ID", http.StatusBadRequest)
 		return
 	}
-	_, idx := findAccountByID(id)
-	if idx == -1 {
-		http.Error(w, "Account not found", http.StatusNotFound)
+	stmt, err := db.Prepare("DELETE FROM accounts WHERE id=?")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	accounts = append(accounts[:idx], accounts[idx+1:]...)
+	_, err = stmt.Exec(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	json.NewEncoder(w).Encode(map[string]string{"message": "Account deleted successfully"})
 }
 
-var users []User
-var currentID int = 1
-
 func getUsers(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	rows, err := db.Query("SELECT id, user_name, first_name, last_name, email, status, time_create, deleted_at FROM users")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	var users []User
+	for rows.Next() {
+		var u User
+		var deletedAt sql.NullTime
+		if err := rows.Scan(&u.ID, &u.UserName, &u.FirstName, &u.LastName, &u.Email, &u.Status, &u.TimeCreate, &deletedAt); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if deletedAt.Valid {
+			u.DeletedAt = &deletedAt.Time
+		}
+		users = append(users, u)
+	}
 	json.NewEncoder(w).Encode(users)
 }
 
@@ -154,152 +194,151 @@ func isEmailValid(email string) bool {
 
 func createUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
 	var user User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
-
-	if user.Username == "" || user.FirstName == "" || user.LastName == "" || user.Email == "" {
+	if user.UserName == "" || user.FirstName == "" || user.LastName == "" || user.Email == "" {
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
 		return
 	}
-
 	if !isEmailValid(user.Email) {
 		http.Error(w, "Invalid email", http.StatusBadRequest)
 		return
 	}
-	for _, u := range users {
-		if u.DeletedAt == "" {
-			if u.Username == user.Username {
-				http.Error(w, "Username already exists", http.StatusConflict)
-				return
-			}
-			if u.Email == user.Email {
-				http.Error(w, "Email already exists", http.StatusConflict)
-				return
-			}
-		}
+	// Không cho phép trùng user_name hoặc email với bất kỳ user nào
+	// Kiểm tra trùng username
+	var exists int
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE user_name=?", user.UserName).Scan(&exists)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	user.ID = currentID
-	currentID++
-	user.TimeCreate = time.Now().Format(time.RFC3339)
-	user.Status = "Active"
-	users = append(users, user)
+	if exists > 0 {
+		http.Error(w, "Username already exists", http.StatusConflict)
+		return
+	}
+	// Kiểm tra trùng email
+	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE email=?", user.Email).Scan(&exists)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if exists > 0 {
+		http.Error(w, "Email already exists", http.StatusConflict)
+		return
+	}
+	stmt, err := db.Prepare("INSERT INTO users (user_name, first_name, last_name, email, status) VALUES (?, ?, ?, ?, ?)")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	res, err := stmt.Exec(user.UserName, user.FirstName, user.LastName, user.Email, user.Status)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	id, _ := res.LastInsertId()
+	user.ID = int(id)
+	user.TimeCreate = time.Now()
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(user)
 }
 
-func findUserByID(id int) (*User, int) {
-	for i, u := range users {
-		if u.ID == id {
-			return &users[i], i
-		}
-	}
-	return nil, -1
-}
-
 func updateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
 	idStr := strings.TrimPrefix(r.URL.Path, "/users/put/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
-
-	user, _ := findUserByID(id)
-	if user == nil {
-		http.Error(w, "User not found", http.StatusNotFound)
-		return
-	}
-
 	var input User
-	err = json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
-
 	if input.Email != "" && !isEmailValid(input.Email) {
 		http.Error(w, "Invalid email", http.StatusBadRequest)
 		return
 	}
-
-	for _, u := range users {
-		if u.ID != user.ID && u.DeletedAt == "" {
-			if input.Username != "" && u.Username == input.Username {
-				http.Error(w, "Username already exists", http.StatusConflict)
-				return
-			}
-			if input.Email != "" && u.Email == input.Email {
-				http.Error(w, "Email already exists", http.StatusConflict)
-				return
-			}
-		}
+	var exists int
+	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE (user_name=? OR email=?) AND id<>? AND deleted_at IS NULL", input.UserName, input.Email, id).Scan(&exists)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-
-	if input.Username != "" {
-		user.Username = input.Username
+	if exists > 0 {
+		http.Error(w, "Email or Username already exists", http.StatusConflict)
+		return
 	}
-	if input.FirstName != "" {
-		user.FirstName = input.FirstName
+	stmt, err := db.Prepare("UPDATE users SET user_name=?, first_name=?, last_name=?, email=?, status=? WHERE id=?")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	if input.LastName != "" {
-		user.LastName = input.LastName
+	// Luôn chỉ update status, không set deleted_at ở đây
+	_, err = stmt.Exec(input.UserName, input.FirstName, input.LastName, input.Email, input.Status, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
-	if input.Email != "" {
-		user.Email = input.Email
-	}
-	if input.Status != "" && (input.Status == "Active" || input.Status == "Inactive") {
-		user.Status = input.Status
-		if input.Status == "Active" {
-			user.DeletedAt = ""
-		}
-	}
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(input)
 }
 
 func deleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
 	idStr := strings.TrimPrefix(r.URL.Path, "/users/delete/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
-
-	user, _ := findUserByID(id)
-	if user == nil {
-		http.Error(w, "User not found", http.StatusNotFound)
+	stmt, err := db.Prepare("UPDATE users SET status='Inactive', deleted_at=NOW() WHERE id=?")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	if user.DeletedAt != "" {
-		http.Error(w, "User already deleted", http.StatusBadRequest)
+	_, err = stmt.Exec(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	user.Status = "Inactive"
-	user.DeletedAt = time.Now().Format(time.RFC3339)
 	json.NewEncoder(w).Encode(map[string]string{"message": "User deleted successfully"})
 }
 
 func getDeletedUsers(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	rows, err := db.Query("SELECT id, user_name, first_name, last_name, email, status, time_create, deleted_at FROM users WHERE status='Inactive'")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
 	var deleted []User
-	for _, u := range users {
-		if u.Status == "Inactive" {
-			deleted = append(deleted, u)
+	for rows.Next() {
+		var u User
+		var deletedAt sql.NullTime
+		if err := rows.Scan(&u.ID, &u.UserName, &u.FirstName, &u.LastName, &u.Email, &u.Status, &u.TimeCreate, &deletedAt); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+		if deletedAt.Valid {
+			u.DeletedAt = &deletedAt.Time
+		}
+		deleted = append(deleted, u)
 	}
 	json.NewEncoder(w).Encode(deleted)
 }
 
 func main() {
+	var err error
+	db, err = sql.Open("mysql", "root:@tcp(localhost:3306)/userdb?parseTime=true")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
 	http.HandleFunc("/users/get", func(w http.ResponseWriter, r *http.Request) {
 		if enableCORS(w, r) {

@@ -3,11 +3,11 @@ session_start();
 if (isset($_GET['logout'])) {
     session_unset();
     session_destroy();
-    header('Location: sign_in.php');
+    header('Location: /sign_in');
     exit();
 }
 if (!isset($_SESSION['user_email'])) {
-    header('Location: sign_in.php');
+    header('Location: /sign_in');
     exit();
 }
 ?>
@@ -197,17 +197,23 @@ if (!isset($_SESSION['user_email'])) {
                 $lastname = isset($user['last_name']) ? $user['last_name'] : '';
                 $initial = $firstname ? strtoupper($firstname[0]) : ($username ? strtoupper($username[0]) : '?');
                 $status = isset($user['status']) ? $user['status'] : 'Active';
-                $badgeClass = $status === 'Active' ? 'badge' : 'badge';
-                echo '<tr>';
+                $deletedAt = isset($user['deleted_at']) ? $user['deleted_at'] : null;
+                $isDeleted = ($deletedAt !== null && $deletedAt !== '' && $deletedAt !== 'null');
+                $isInactive = ($status !== 'Active');
+                if ($isDeleted) {
+                    $rowStyle = 'background:#f6f8fb;';
+                } else {
+                    $rowStyle = '';
+                }
+                echo '<tr style="' . $rowStyle . '">';
                 echo '<td style="border:1px solid #222; background:#fff; color:#111;">';
                 echo '<div style="display:flex;align-items:center;gap:10px;">';
                 echo '<span class="avatar-container" style="position:relative;display:inline-block;width:36px;height:36px;">';
-                
                 echo '<span class="avatar avatar-xs avatar-rounded" style="background:#e6f4ff;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:16px;">' . $initial . '</span>';
                 if ($status === 'Active') {
                     echo '<span class="status-dot"><span style="display:block;width:11px;height:11px;background:#22c55e;border-radius:50%;border:3px solid #fff;aspect-ratio:1/1;"></span></span>';
                 } else {
-                    echo '<span class="status-dot"><span style="display:block;width:11px;height:11px;background:#b1b1b1;border-radius:50%;border:3px solid #fff;aspect-ratio:1/1;"></span></span>';
+                        echo '<span class="status-dot"><span style="display:block;width:11px;height:11px;background:#b1b1b1;border-radius:50%;border:3px solid #fff;aspect-ratio:1/1;"></span></span>'; 
                 }
                 echo '</span>';
                 echo '<span style="font-weight:500;">' . htmlspecialchars($firstname . ' ' . $lastname . ' ' . $username) . '</span>';
@@ -215,19 +221,22 @@ if (!isset($_SESSION['user_email'])) {
                 echo '</td>';
                 echo '<td style="border:1px solid #222; background:#fff; color:#111;">';
                 if ($status === 'Active') {
-                    echo '<span class="badge-status badge-status-active">' . htmlspecialchars($status) . '</span>';
-                } else {
-                    echo '<span class="badge-status badge-status-inactive">' . htmlspecialchars($status) . '</span>';
+                    echo '<span class="badge-status badge-status-active">Active</span>';
+                } else if ($isDeleted) {
+                    echo '<span class="badge-status badge-status-inactive" style="background:#f6f8fb;color:#888;">Inactive</span>';
+                } else if ($isInactive) {
+                    echo '<span class="badge-status badge-status-inactive" style="background:#f6f8fb;color:#888;font-weight:600;">Inactive</span>';
                 }
                 echo '</td>';
                 echo '<td style="border:1px solid #222; background:#fff; color:#111;">' . htmlspecialchars($user['email']) . '</td>';
                 echo '<td style="border:1px solid #222; background:#fff; color:#111;white-space:nowrap;">';
-                $isDeleted = isset($user['deleted_at']) && $user['deleted_at'];
-                $editOnClick = $isDeleted
-                    ? 'openUserModal(' . htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8') . ', true);return false;'
-                    : 'openUserModal(' . htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8') . ');return false;';
-                echo '<a href="#" class="text-info fs-14 lh-1 tooltip-hover" data-tooltip="Edit" style="display:inline-block;vertical-align:middle;margin-right:6px;" onclick="' . $editOnClick . '"><i class="ri-edit-line" style="font-size:22px;"></i></a> ';
-                if (!$isDeleted) {
+                if ($isDeleted) {
+                    $editOnClick = 'openUserModal(' . htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8') . ', true);return false;';
+                    echo '<a href="#" class="text-info fs-14 lh-1 tooltip-hover" data-tooltip="View (Deleted)" style="display:inline-block;vertical-align:middle;margin-right:6px;pointer-events:auto;" onclick="' . $editOnClick . '"><i class="ri-eye-line" style="font-size:22px;"></i></a> ';
+                } else {
+                    $editOnClick = 'openUserModal(' . htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8') . ');return false;';
+                    echo '<a href="#" class="text-info fs-14 lh-1 tooltip-hover" data-tooltip="Edit" style="display:inline-block;vertical-align:middle;margin-right:6px;" onclick="' . $editOnClick . '"><i class="ri-edit-line" style="font-size:22px;"></i></a> ';
+                    // Luôn hiện icon Delete nếu chưa bị xóa (dù status là Inactive hay Active)
                     $qs = $_GET;
                     $qs['delete_id'] = $user['id'];
                     $delUrl = strtok($_SERVER['REQUEST_URI'], '?') . '?' . http_build_query($qs);

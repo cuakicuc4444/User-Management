@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			}
 		}
 		if ($found) {
-			header('Location: index.php');
+			header('Location: /user');
 			exit();
 		} elseif (!$userExists) {
 			$usernameOrEmailError = 'Username or email does not exist!';
@@ -49,14 +49,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 	<meta charset="UTF-8">
 	<title>Sign In</title>
-	<link rel="stylesheet" href="style1.css">
+	<!-- <link rel="stylesheet" href="style1.css"> -->
+	<link rel="stylesheet" href="/user/style1.css">
 	<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 </head>
 <body>
 	<div class="login-container">
 		   <div class="login-box">
 			   <div style="text-align:center;font-size:2rem;font-weight:600;margin-bottom:24px;color:#000000;">Sign In</div>
-		   <form method="post" action="sign_in.php" autocomplete="off">
+		   <form method="post" action="/sign_in" autocomplete="off">
 			   <!-- Username or Email -->
 			   <label for="signin-username-or-email">
 				   Username or Email <sup class="fs-12 text-danger">*</sup>
@@ -87,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			<div class="text-center">
 				<p class="text-muted mt-3 mb-0">
 					Don't have an account?
-					<a class="text-primary" href="sign_up.php">Sign Up</a>
+					<a class="text-primary" href="/sign_up">Sign Up</a>
 				</p>
 			</div>
 		</div>
