@@ -1,3 +1,49 @@
+body, input, button, label, .login-box, .login-box label, .login-box input, .login-box button, .login-box .btn-primary, .login-box .form-check-label, .login-box .text-muted, .login-box .text-primary, .login-box .text-success {
+	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+	font-size: 16px;
+	font-weight: 400;
+}
+.login-box > div:first-child, .login-box h2, .login-box h1 {
+	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+	font-size: 2rem;
+	font-weight: 600;
+	color: #000;
+	text-align: center;
+	margin-bottom: 24px;
+}
+.login-box label {
+	font-weight: 500;
+	color: #222;
+	margin-bottom: 6px;
+	display: block;
+	font-size: 16px;
+}
+.login-box input[type="text"],
+.login-box input[type="password"] {
+	font-size: 16px;
+	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+}
+.login-box .btn-primary {
+	font-size: 18px;
+	font-weight: 600;
+	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+}
+/* Ẩn icon mắt mặc định của trình duyệt trong input password */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+	display: none !important;
+}
+input[type="password"]::-webkit-credentials-auto-fill-button {
+	display: none !important;
+}
+input[type="password"]::-webkit-input-decoration,
+input[type="password"]::-webkit-input-placeholder {
+	display: none !important;
+}
+input[type="password"]::after,
+input[type="password"]::before {
+	display: none !important;
+}
 
 .login-container {
 	display: flex;

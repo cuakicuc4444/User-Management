@@ -223,7 +223,6 @@ if (!isset($_SESSION['user_email'])) {
                 echo '<td style="border:1px solid #222; background:#fff; color:#111;">' . htmlspecialchars($user['email']) . '</td>';
                 echo '<td style="border:1px solid #222; background:#fff; color:#111;white-space:nowrap;">';
                 $isDeleted = isset($user['deleted_at']) && $user['deleted_at'];
-                // Luôn hiển thị icon sửa, nếu là user đã xóa thì chỉ cho xem, không cho sửa
                 $editOnClick = $isDeleted
                     ? 'openUserModal(' . htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8') . ', true);return false;'
                     : 'openUserModal(' . htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8') . ');return false;';
@@ -293,7 +292,6 @@ function openUserModal(user, viewOnly = false) {
     document.getElementById('modalError').textContent = '';
     document.getElementById('modal_status').value = user && user.status ? user.status : 'Active';
 
-    // Nếu viewOnly (user đã xóa), disable input và ẩn nút Save
     document.getElementById('modal_user_name').disabled = !!viewOnly;
     document.getElementById('modal_first_name').disabled = !!viewOnly;
     document.getElementById('modal_last_name').disabled = !!viewOnly;
@@ -389,7 +387,6 @@ function showToast(message, type = 'success', timeout = 2000) {
     setTimeout(() => { toast.remove(); }, timeout);
 }
 
-// Custom delete confirm modal
 function showDeleteConfirm(delUrl) {
     let confirmModal = document.getElementById('custom-delete-confirm');
     if (!confirmModal) {

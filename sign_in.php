@@ -9,7 +9,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$password = isset($_POST['password']) ? $_POST['password'] : '';
 	if ($username_or_email === '') {
 		$usernameOrEmailError = 'Username or email is required!';
-	// Không kiểm tra độ dài mật khẩu nữa
 	} else {
 		$apiUrl = 'http://localhost:8080/accounts/get';
 		$ch = curl_init($apiUrl);
@@ -93,40 +92,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			</div>
 		</div>
 	</div>
+<script>
+	function createpassword(inputId, btn) {
+		const input = document.getElementById(inputId);
+		const icon = btn.querySelector('i');
+		if (input.type === 'password') {
+			input.type = 'text';
+			icon.classList.remove('ri-eye-off-line');
+			icon.classList.add('ri-eye-line');
+		} else {
+			input.type = 'password';
+			icon.classList.remove('ri-eye-line');
+			icon.classList.add('ri-eye-off-line');
+		}
+	}
 
-	   <script>
-		 // Password show/hide logic (giống sign_up)
-		 function createpassword(inputId, btn) {
-			 const input = document.getElementById(inputId);
-			 const icon = btn.querySelector('i');
-			 if (input.type === 'password') {
-				 input.type = 'text';
-				 icon.classList.remove('ri-eye-off-line');
-				 icon.classList.add('ri-eye-line');
-			 } else {
-				 input.type = 'password';
-				 icon.classList.remove('ri-eye-line');
-				 icon.classList.add('ri-eye-off-line');
-			 }
-		 }
+	function showToast(message, type = 'success', timeout = 2000) {
+		let toastContainer = document.getElementById('custom-toast-container');
+		if (!toastContainer) {
+			toastContainer = document.createElement('div');
+			toastContainer.id = 'custom-toast-container';
+			toastContainer.style.zIndex = 99999;
+			document.body.appendChild(toastContainer);
+		}
+		const toast = document.createElement('div');
+		toast.className = 'custom-toast custom-toast-' + type;
+		toast.innerHTML = `<span>${message}</span><button class=\"custom-toast-close\" onclick=\"this.parentNode.remove()\">&times;</button>`;
+		toastContainer.appendChild(toast);
+		setTimeout(() => { toast.remove(); }, timeout);
+	}
 
-	   // showToast function from index.php
-	   function showToast(message, type = 'success', timeout = 2000) {
-		   let toastContainer = document.getElementById('custom-toast-container');
-		   if (!toastContainer) {
-			   toastContainer = document.createElement('div');
-			   toastContainer.id = 'custom-toast-container';
-			   toastContainer.style.zIndex = 99999;
-			   document.body.appendChild(toastContainer);
-		   }
-		   const toast = document.createElement('div');
-		   toast.className = 'custom-toast custom-toast-' + type;
-		   toast.innerHTML = `<span>${message}</span><button class=\"custom-toast-close\" onclick=\"this.parentNode.remove()\">&times;</button>`;
-		   toastContainer.appendChild(toast);
-		   setTimeout(() => { toast.remove(); }, timeout);
-	   }
-
-	   // Custom validation for login form
 	   document.querySelector('form').addEventListener('submit', function(e) {
 		   var usernameOrEmail = document.getElementById('signin-username-or-email').value.trim();
 		   var password = document.getElementById('signin-password').value;
@@ -142,10 +137,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			   e.preventDefault();
 			   return false;
 		   }
-		   // Không kiểm tra độ dài mật khẩu nữa
 	   });
 
-	   // Show error toast if error exists (PHP -> JS)
 	   <?php if (!empty($usernameOrEmailError)): ?>
 		   showToast("<?php echo $usernameOrEmailError; ?>", 'error');
 	   <?php endif; ?>
