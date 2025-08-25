@@ -1,4 +1,3 @@
-/* Ẩn icon mắt mặc định của trình duyệt trong input password */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
 	display: none !important;
@@ -14,7 +13,6 @@ input[type="password"]::after,
 input[type="password"]::before {
 	display: none !important;
 }
-/* CSS cho giao diện sign_up - đồng bộ font với sign_in */
 body, input, button, label, .login-box, .login-box label, .login-box input, .login-box button, .login-box .btn-primary, .login-box .form-check-label, .login-box .text-muted, .login-box .text-primary, .login-box .text-success {
 	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
 	font-size: 16px;

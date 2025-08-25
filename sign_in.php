@@ -18,12 +18,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$accounts = json_decode($response, true);
 		$found = false;
 		$userExists = false;
+		$inactiveAccount = false;
+		$password_md5 = md5($password);
 		if (is_array($accounts)) {
 			foreach ($accounts as $acc) {
 				if ((isset($acc['email']) && strtolower($acc['email']) === strtolower($username_or_email)) ||
 					(isset($acc['user_name']) && strtolower($acc['user_name']) === strtolower($username_or_email))) {
 					$userExists = true;
-					if (isset($acc['password']) && $acc['password'] === $password) {
+					if (isset($acc['password']) && $acc['password'] === $password_md5) {
+						if (!isset($acc['status']) || strtolower($acc['status']) !== 'active') {
+							$inactiveAccount = true;
+							break;
+						}
 						$_SESSION['user_email'] = $acc['email'];
 						$_SESSION['user_name'] = $acc['user_name'];
 						$_SESSION['account_id'] = $acc['id'];
@@ -36,6 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		if ($found) {
 			header('Location: /user');
 			exit();
+		} elseif ($inactiveAccount) {
+			$passwordError = 'Your account has been locked.';
 		} elseif (!$userExists) {
 			$usernameOrEmailError = 'Username or email does not exist!';
 		} else {
@@ -64,15 +72,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			   </label>
 			   <input id="signin-username-or-email" name="username_or_email" placeholder="Enter your username or email" type="text" value="<?php echo isset($_POST['username_or_email']) ? htmlspecialchars($_POST['username_or_email']) : ''; ?>">
 			   <!-- Password -->
-			   <label for="signin-password">
-								Password <sup class="fs-12 text-danger">*</sup>
-						 </label>
-						 <div style="display: flex; align-items: center; gap: 8px;">
-							 <input id="signin-password" name="password" placeholder="Enter your password" type="password" autocomplete="off" style="flex:1;">
-							 <button class="show-password-button" type="button" onclick="createpassword('signin-password', this)" tabindex="-1" style="position:static; margin-left:-8px; margin-top:25px;">
-								 <span><i class="ri-eye-off-line align-middle"></i></span>
-							 </button>
-						 </div>
+				<label for="signin-password">
+					Password <sup class="fs-12 text-danger">*</sup>
+				</label>
+				<div style="position:relative;">
+					<input id="signin-password" name="password" placeholder="Enter your password" type="password" autocomplete="off" style="width:95%;padding-right:1px;">
+					<button class="show-password-button" type="button" onclick="createpassword('signin-password', this)" tabindex="-1" style="position:absolute; right:0px; top:35%; transform:translateY(-50%); background:transparent; border:none; padding:0; cursor:pointer;">
+						<span><i class="ri-eye-off-line align-middle"></i></span>
+					</button>
+				</div>
 			   <div class="form-check" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
 				   <div style="display:flex;align-items:center;">
 					   

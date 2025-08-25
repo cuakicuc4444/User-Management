@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/md5"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -26,6 +27,7 @@ type User struct {
 }
 type Account struct {
 	ID        int       `json:"id"`
+	Status    string    `json:"status"`
 	UserName  string    `json:"user_name"`
 	Email     string    `json:"email"`
 	Password  string    `json:"password"`
@@ -52,7 +54,7 @@ func isAccountEmailValid(email string) bool {
 
 func getAccounts(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	rows, err := db.Query("SELECT id, user_name, email, password, created_at FROM accounts")
+	rows, err := db.Query("SELECT id, user_name, email, password, status, created_at FROM accounts")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -61,7 +63,7 @@ func getAccounts(w http.ResponseWriter, _ *http.Request) {
 	var accounts []Account
 	for rows.Next() {
 		var acc Account
-		if err := rows.Scan(&acc.ID, &acc.UserName, &acc.Email, &acc.Password, &acc.CreatedAt); err != nil {
+		if err := rows.Scan(&acc.ID, &acc.UserName, &acc.Email, &acc.Password, &acc.Status, &acc.CreatedAt); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -95,18 +97,24 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Email or Username already exists", http.StatusConflict)
 		return
 	}
-	stmt, err := db.Prepare("INSERT INTO accounts (user_name, email, password) VALUES (?, ?, ?)")
+	hashedPassword := fmt.Sprintf("%x", md5.Sum([]byte(acc.Password)))
+	status := acc.Status
+	if status == "" {
+		status = "active"
+	}
+	stmt, err := db.Prepare("INSERT INTO accounts (user_name, email, password, status) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	res, err := stmt.Exec(acc.UserName, acc.Email, acc.Password)
+	res, err := stmt.Exec(acc.UserName, acc.Email, hashedPassword, status)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	id, _ := res.LastInsertId()
 	acc.ID = int(id)
+	acc.Status = status
 	acc.CreatedAt = time.Now()
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(acc)
@@ -129,12 +137,13 @@ func updateAccount(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Password required", http.StatusBadRequest)
 		return
 	}
+	hashedPassword := fmt.Sprintf("%x", md5.Sum([]byte(input.Password)))
 	stmt, err := db.Prepare("UPDATE accounts SET password=? WHERE id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, err = stmt.Exec(input.Password, id)
+	_, err = stmt.Exec(hashedPassword, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -207,8 +216,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid email", http.StatusBadRequest)
 		return
 	}
-	// Không cho phép trùng user_name hoặc email với bất kỳ user nào
-	// Kiểm tra trùng username
+
 	var exists int
 	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE user_name=?", user.UserName).Scan(&exists)
 	if err != nil {
@@ -219,7 +227,6 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Username already exists", http.StatusConflict)
 		return
 	}
-	// Kiểm tra trùng email
 	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE email=?", user.Email).Scan(&exists)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -278,7 +285,6 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// Luôn chỉ update status, không set deleted_at ở đây
 	_, err = stmt.Exec(input.UserName, input.FirstName, input.LastName, input.Email, input.Status, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

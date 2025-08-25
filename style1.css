@@ -28,7 +28,6 @@ body, input, button, label, .login-box, .login-box label, .login-box input, .log
 	font-weight: 600;
 	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
 }
-/* Ẩn icon mắt mặc định của trình duyệt trong input password */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
 	display: none !important;

@@ -4,6 +4,8 @@ $signupError = '';
 $usernameError = '';
 $emailError = '';
 $passwordError = '';
+?>
+<?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $username = isset($_POST['username']) ? trim($_POST['username']) : '';
   $email = isset($_POST['email']) ? trim($_POST['email']) : '';
@@ -88,18 +90,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <label for="signup-password">
             Password <sup class="fs-12 text-danger">*</sup>
           </label>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <input id="signup-password" name="password" placeholder="Enter your password" type="password" autocomplete="off" style="flex:1;">
-            <button class="show-password-button" type="button" onclick="createpassword('signup-password', this)" tabindex="-1" style="position:static; margin-left:-8px; margin-top:25px;">
+          <div style="position:relative;">
+            <input id="signup-password" name="password" placeholder="Enter your password" type="password" autocomplete="off" style="width:100%;padding-right:40px;">
+            <button class="show-password-button" type="button" onclick="createpassword('signup-password', this)" tabindex="-1" style="position:absolute; right:0px; top:35%; transform:translateY(-50%); background:transparent; border:none; padding:0; cursor:pointer;">
               <span><i class="ri-eye-off-line align-middle"></i></span>
             </button>
           </div>
           <label for="create-confirmpassword">
             Confirm Password <sup class="fs-12 text-danger">*</sup>
           </label>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <input id="create-confirmpassword" name="confirm_password" placeholder="Re-enter your password" type="password" autocomplete="off" style="flex:1;">
-            <button class="show-password-button" type="button" onclick="createpassword('create-confirmpassword', this)" tabindex="-1" style="position:static; margin-left:-8px; margin-top:25px;">
+          <div style="position:relative;">
+            <input id="create-confirmpassword" name="confirm_password" placeholder="Re-enter your password" type="password" autocomplete="off" style="width:100%;padding-right:40px;">
+            <button class="show-password-button" type="button" onclick="createpassword('create-confirmpassword', this)" tabindex="-1" style="position:absolute; right:0px; top:35%; transform:translateY(-50%); background:transparent; border:none; padding:0; cursor:pointer;">
               <span><i class="ri-eye-off-line align-middle"></i></span>
             </button>
           </div>

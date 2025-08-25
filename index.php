@@ -236,7 +236,6 @@ if (!isset($_SESSION['user_email'])) {
                 } else {
                     $editOnClick = 'openUserModal(' . htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8') . ');return false;';
                     echo '<a href="#" class="text-info fs-14 lh-1 tooltip-hover" data-tooltip="Edit" style="display:inline-block;vertical-align:middle;margin-right:6px;" onclick="' . $editOnClick . '"><i class="ri-edit-line" style="font-size:22px;"></i></a> ';
-                    // Luôn hiện icon Delete nếu chưa bị xóa (dù status là Inactive hay Active)
                     $qs = $_GET;
                     $qs['delete_id'] = $user['id'];
                     $delUrl = strtok($_SERVER['REQUEST_URI'], '?') . '?' . http_build_query($qs);
