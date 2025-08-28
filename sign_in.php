@@ -33,6 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 						$_SESSION['user_email'] = $acc['email'];
 						$_SESSION['user_name'] = $acc['user_name'];
 						$_SESSION['account_id'] = $acc['id'];
+						if (isset($acc['rule'])) {
+							$_SESSION['user_rule'] = $acc['rule'];
+						} else {
+							$_SESSION['user_rule'] = '';
+						}
 						$found = true;
 						break;
 					}
@@ -57,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 	<meta charset="UTF-8">
 	<title>Sign In</title>
-	<!-- <link rel="stylesheet" href="style1.css"> -->
 	<link rel="stylesheet" href="/user/style1.css">
 	<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 </head>
@@ -66,12 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		   <div class="login-box">
 			   <div style="text-align:center;font-size:2rem;font-weight:600;margin-bottom:24px;color:#000000;">Sign In</div>
 		   <form method="post" action="/sign_in" autocomplete="off">
-			   <!-- Username or Email -->
 			   <label for="signin-username-or-email">
 				   Username or Email <sup class="fs-12 text-danger">*</sup>
 			   </label>
 			   <input id="signin-username-or-email" name="username_or_email" placeholder="Enter your username or email" type="text" value="<?php echo isset($_POST['username_or_email']) ? htmlspecialchars($_POST['username_or_email']) : ''; ?>">
-			   <!-- Password -->
 				<label for="signin-password">
 					Password <sup class="fs-12 text-danger">*</sup>
 				</label>
@@ -87,12 +89,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				   </div>
 				   <a href="#" class="text-success">Forgot Password?</a>
 			   </div>
-			   <!-- Submit button -->
 			   <button type="submit" class="btn-primary" id="signin-btn">
 				   <span style="display:inline-flex;align-items:center;"><path d="M12 4v16m8-8H4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Sign In</span>
 			   </button>
 		   </form>
-			<!-- Sign Up -->
 			<div class="text-center">
 				<p class="text-muted mt-3 mb-0">
 					Don't have an account?

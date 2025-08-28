@@ -1,5 +1,25 @@
 <?php
 session_start();
+// --- Tạo tài khoản admin mặc định nếu chưa có ---
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "userdb";
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$adminPass = md5('admin123');
+$check = $conn->query("SELECT id FROM accounts WHERE id=1");
+if ($check && $check->num_rows == 0) {
+    $sql = "INSERT INTO accounts (id, rule, status, user_name, email, password, created_at) VALUES (1, 'admin', 'active', 'admin', 'admin@gmail.com', '$adminPass', '2004-06-16 16:16:00')";
+    $conn->query($sql);
+    if ($conn->error) { echo $conn->error; }
+}
+$conn->close();
+
+// --- Hết tạo tài khoản admin mặc định ---
 if (isset($_GET['logout'])) {
     session_unset();
     session_destroy();
@@ -129,9 +149,12 @@ if (!isset($_SESSION['user_email'])) {
             <button type="submit" class="search-btn">Search</button>
         </form>
         <button type="button" class="search-btn add-btn-center" onclick="openUserModal(null)">Add</button>
-        <form method="get" action="index.php" style="display:inline; margin-left:8px;">
-            <button type="submit" name="logout" value="1" class="search-btn" style="background:#197278; color:#fff;">Log out</button>
-        </form>
+            <?php if (isset($_SESSION['user_rule']) && $_SESSION['user_rule'] === 'admin'): ?>
+                <a href="/account" class="search-btn" style="background:#197278; color:#fff;">Account Management</a>
+            <?php endif; ?>
+            <form method="get" action="index.php" style="display:inline; margin-left:8px;">
+                <button type="submit" name="logout" value="1" class="search-btn" style="background:#197278; color:#fff;">Log out</button>
+            </form>
     </div>
 </div>
 
