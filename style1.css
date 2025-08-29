@@ -1,3 +1,6 @@
+body {
+	font-family: 'Segoe UI', Arial, sans-serif;
+}
 body, input, button, label, .login-box, .login-box label, .login-box input, .login-box button, .login-box .btn-primary, .login-box .form-check-label, .login-box .text-muted, .login-box .text-primary, .login-box .text-success {
 	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
 	font-size: 16px;

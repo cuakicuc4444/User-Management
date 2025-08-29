@@ -1,0 +1,27 @@
+					icon.classList.remove('ri-eye-line');
+					icon.classList.add('ri-eye-off-line');
+					btn.style.color = '#bbb';
+			saveBtn.onclick = function(e) {
+				e.preventDefault();
+				const newPass = document.getElementById('newPass').value;
+				const confirmPass = document.getElementById('confirmPass').value;
+				if (!newPass || !confirmPass) {
+					showMsg(msgPass, 'Please fill in all password fields.');
+					return;
+				}
+				if (newPass.length < 6) {
+					showMsg(msgPass, 'Password must be at least 6 characters.');
+					return;
+				}
+				if (newPass !== confirmPass) {
+					showMsg(msgPass, 'Passwords do not match!');
+					return;
+				}
+				showMsg(msgPass, 'Password reset successful!', 'success');
+				setTimeout(() => { window.location.href = '/sign_in'; }, 1800);
+			};
+
+			backHome.onclick = function(e) {
+				e.preventDefault();
+				window.location.href = '/sign_in';
+			};

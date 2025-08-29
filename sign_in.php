@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				   <div style="display:flex;align-items:center;">
 					   
 				   </div>
-				   <a href="#" class="text-success">Forgot Password?</a>
+				   <a href="/forgot_password" class="text-success">Forgot Password?</a>
 			   </div>
 			   <button type="submit" class="btn-primary" id="signin-btn">
 				   <span style="display:inline-flex;align-items:center;"><path d="M12 4v16m8-8H4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Sign In</span>

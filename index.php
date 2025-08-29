@@ -23,12 +23,46 @@ $conn->close();
 if (isset($_GET['logout'])) {
     session_unset();
     session_destroy();
-    header('Location: /sign_in');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+    header('Location: http://localhost/sign_in');
     exit();
 }
+// Luôn kiểm tra đăng nhập và chặn cache với mọi request
 if (!isset($_SESSION['user_email'])) {
-    header('Location: /sign_in');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+    header('Location: http://localhost/sign_in');
     exit();
+}
+// --- Xử lý xóa user (delete_id) phải đặt trước khi xuất HTML ---
+if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
+    $deleteId = intval($_GET['delete_id']);
+    if ($deleteId <= 0) {
+        $deleteMsg = 'Invalid user ID!';
+    } else {
+        $deleteUrl = 'http://localhost:8080/users/delete/' . $deleteId;
+        $chd = curl_init($deleteUrl);
+        curl_setopt($chd, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        curl_setopt($chd, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($chd, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Accept: application/json'));
+        curl_setopt($chd, CURLOPT_FOLLOWLOCATION, true);
+        $delResponse = curl_exec($chd);
+        $delStatus = curl_getinfo($chd, CURLINFO_HTTP_CODE);
+        curl_close($chd);
+        $msg = '';
+        if ($delStatus == 200 || $delStatus == 204) {
+            $msg = 'User deleted successfully!';
+            $url = strtok($_SERVER["REQUEST_URI"], '?');
+            $qs = $_GET;
+            unset($qs['delete_id']);
+            $qs['msg'] = urlencode($msg);
+            header('Location: ' . $url . (count($qs) ? '?' . http_build_query($qs) : ''));
+            exit;
+        } else {
+            $deleteMsg = 'Delete user failed!';
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -42,7 +76,153 @@ if (!isset($_SESSION['user_email'])) {
 </head>
 
 <body>
-<?php ?>
+<script>
+// Nếu không có session (PHP đã redirect nhưng nếu truy cập lại bằng back thì vẫn reload về sign_in)
+if (!<?php echo json_encode(isset($_SESSION['user_email'])); ?>) {
+    window.location.replace('http://localhost/sign_in');
+}
+</script>
+<!-- Sidebar -->
+<div id="sidebar" style="position:fixed;top:0;left:0;height:100vh;width:250px;background:#a78bfa;color:#fff;z-index:10000;box-shadow:2px 0 16px #0002;display:none;flex-direction:column;transition:all 0.2s;">
+    <div style="padding:24px 0 12px 28px;font-size:13px;letter-spacing:2px;color:#bfc8e2;font-weight:bold;">Main</div>
+    <ul style="list-style:none;padding:0;margin:0;">
+        <li style="margin-bottom:6px;">
+            <button id="tableMenuBtn" style="width:100%;background:none;border:none;outline:none;color:#fff;display:flex;align-items:center;padding:12px 24px 12px 28px;font-size:17px;font-weight:500;border-radius:24px 0 0 24px;gap:12px;cursor:pointer;transition:background 0.15s;">
+                <i class="ri-table-line" style="font-size:20px;"></i>
+                Table
+                <i id="tableMenuArrow" class="ri-arrow-down-s-line" style="font-size:22px;margin-left:auto;transition:transform 0.2s;"></i>
+            </button>
+            <ul id="tableSubMenu" style="list-style:none;padding:0 0 0 38px;margin:0;display:none;">
+                <li>
+                    <a href="/user" style="display:flex;align-items:center;padding:10px 0;color:#fff;text-decoration:none;font-size:16px;gap:10px;">
+                        <i class="ri-user-3-line" style="font-size:18px;"></i>
+                        User Management
+                    </a>
+                </li>
+                <?php if (isset($_SESSION['user_rule']) && $_SESSION['user_rule'] === 'admin'): ?>
+                <li>
+                    <a href="/account" style="display:flex;align-items:center;padding:10px 0;color:#fff;text-decoration:none;font-size:16px;gap:10px;">
+                        <i class="ri-user-settings-line" style="font-size:18px;"></i>
+                        Account Management
+                    </a>
+                </li>
+                <?php endif; ?>
+            </ul>
+        </li>
+    </ul>
+</div>
+<script>
+// Đảm bảo chỉ khai báo 1 lần, thực thi sau khi DOM đã sẵn sàng
+document.addEventListener('DOMContentLoaded', function() {
+    const menuBtn = document.getElementById('menuBtn');
+    const sidebar = document.getElementById('sidebar');
+    let sidebarVisible = false;
+    if (menuBtn && sidebar) {
+        menuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            sidebarVisible = !sidebarVisible;
+            sidebar.style.display = sidebarVisible ? 'flex' : 'none';
+        });
+        document.addEventListener('click', function(e) {
+            if (sidebarVisible && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                sidebar.style.display = 'none';
+                sidebarVisible = false;
+            }
+        });
+    }
+    // Table menu dropdown
+    const tableMenuBtn = document.getElementById('tableMenuBtn');
+    const tableSubMenu = document.getElementById('tableSubMenu');
+    const tableMenuArrow = document.getElementById('tableMenuArrow');
+    let tableMenuOpen = false;
+    if (tableMenuBtn && tableSubMenu && tableMenuArrow) {
+        tableMenuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            tableMenuOpen = !tableMenuOpen;
+            tableSubMenu.style.display = tableMenuOpen ? 'block' : 'none';
+            tableMenuArrow.style.transform = tableMenuOpen ? 'rotate(180deg)' : 'rotate(0)';
+        });
+    }
+});
+</script>
+<!-- Topbar/Navbar -->
+<div class="topbar" style="width:100%;background:#fff;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between;padding:10px 32px 10px 18px;box-sizing:border-box;gap:18px;">
+    <!-- Menu icon (hamburger) -->
+    <div style="display:flex;align-items:center;gap:10px;">
+        <button id="menuBtn" style="background:none;border:none;outline:none;cursor:pointer;padding:0 8px 0 0;display:flex;align-items:center;">
+            <i class="ri-menu-line" style="font-size:28px;color:#a78bfa;"></i>
+        </button>
+    </div>
+    <!-- Search, Add, Avatar group -->
+    <div style="display:flex;align-items:center;gap:16px;">
+        <form method="get" class="search-form" style="display:flex;align-items:center;gap:0;">
+            <input type="text" name="search" placeholder="Search username or email" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>" class="search-input" style="margin-right:8px;min-width:220px;">
+            <button type="submit" class="search-btn" style="margin-right:8px;">Search</button>
+        </form>
+        <button type="button" class="search-btn" style="margin-right:8px;" onclick="openUserModal(null)">Add</button>
+        <div class="avatar-dropdown" style="position:relative;">
+            <span id="avatarDropdownBtn" class="avatar avatar-xs avatar-rounded" style="background:#e6f4ff;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px;color:#7b61ff;cursor:pointer;border:2px solid #a78bfa;">
+                <?php echo mb_strtoupper(mb_substr($_SESSION['user_name'], 0, 1, 'UTF-8'), 'UTF-8'); ?>
+            </span>
+            <div id="avatarDropdownMenu" style="display:none;position:absolute;right:0;top:44px;min-width:260px;background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);padding:20px 0 10px 0;z-index:100;">
+                <div style="padding:0 24px 12px 24px;border-bottom:1px solid #f0f0f0;">
+                    <div style="font-weight:700;font-size:18px;line-height:1.2;">
+                        <?php echo isset($_SESSION['user_name']) ? htmlspecialchars($_SESSION['user_name']) : 'User'; ?>
+                    </div>
+                    <div style="font-size:14px;color:#888;">
+                        <?php echo isset($_SESSION['user_email']) ? htmlspecialchars($_SESSION['user_email']) : ''; ?>
+                    </div>
+                </div>
+                <a href="#" style="display:flex;align-items:center;gap:12px;padding:14px 24px 8px 24px;color:#222;text-decoration:none;font-size:15px;">
+                    <span style="font-size:18px;"><i class="ri-user-line"></i></span> My Profile
+                </a>
+                <a href="#" style="display:flex;align-items:center;gap:12px;padding:8px 24px;color:#222;text-decoration:none;font-size:15px;">
+                    <span style="font-size:18px;"><i class="ri-mail-line"></i></span> Mail Inbox
+                   
+                </a>
+                <a href="#" style="display:flex;align-items:center;gap:12px;padding:8px 24px;color:#222;text-decoration:none;font-size:15px;">
+                    <span style="font-size:18px;"><i class="ri-settings-3-line"></i></span> Account Settings
+                </a>
+                <a href="?logout=1" style="display:flex;align-items:center;gap:12px;padding:8px 24px 14px 24px;color:#e44a8b;text-decoration:none;font-size:15px;">
+                    <span style="font-size:18px;"><i class="ri-logout-box-r-line"></i></span> Sign Out
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Sidebar toggle
+const menuBtn = document.getElementById('menuBtn');
+const sidebar = document.getElementById('sidebar');
+let sidebarVisible = false;
+menuBtn.addEventListener('click', function() {
+    sidebarVisible = !sidebarVisible;
+    sidebar.style.display = sidebarVisible ? 'flex' : 'none';
+});
+// Đóng sidebar khi click ra ngoài (nâng cao)
+document.addEventListener('click', function(e) {
+    if (sidebarVisible && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+        sidebar.style.display = 'none';
+        sidebarVisible = false;
+    }
+});
+// Avatar dropdown logic
+document.addEventListener('DOMContentLoaded', function() {
+    var avatarBtn = document.getElementById('avatarDropdownBtn');
+    var dropdown = document.getElementById('avatarDropdownMenu');
+    if (avatarBtn && dropdown) {
+        avatarBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+        document.addEventListener('click', function(e) {
+            if (!dropdown.contains(e.target) && e.target !== avatarBtn) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
     <div class="main-center">
     <?php
     $addErrorArr = [];
@@ -55,33 +235,9 @@ if (!isset($_SESSION['user_email'])) {
     if (!is_array($users)) $users = [];
     $searchError = '';
     $filteredUsers = $users;
-    if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
-        $deleteId = intval($_GET['delete_id']);
-        if ($deleteId <= 0) {
-            echo '<div id="deleteMsg" class="delete-msg">Invalid user ID!</div>';
-        } else {
-        $deleteUrl = 'http://localhost:8080/users/delete/' . $deleteId;
-            $chd = curl_init($deleteUrl);
-            curl_setopt($chd, CURLOPT_CUSTOMREQUEST, 'DELETE');
-            curl_setopt($chd, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($chd, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Accept: application/json'));
-            curl_setopt($chd, CURLOPT_FOLLOWLOCATION, true);
-            $delResponse = curl_exec($chd);
-            $delStatus = curl_getinfo($chd, CURLINFO_HTTP_CODE);
-            curl_close($chd);
-            $msg = '';
-            if ($delStatus == 200 || $delStatus == 204) {
-                $msg = 'User deleted successfully!';
-                $url = strtok($_SERVER["REQUEST_URI"], '?');
-                $qs = $_GET;
-                unset($qs['delete_id']);
-                $qs['msg'] = urlencode($msg);
-                header('Location: ' . $url . (count($qs) ? '?' . http_build_query($qs) : ''));
-                exit;
-            } else {
-                $msg = 'Delete user failed!';
-            }
-        }
+    // ...đã xử lý xóa user ở đầu file...
+    if (isset($deleteMsg)) {
+        echo '<div id="deleteMsg" class="delete-msg">' . htmlspecialchars($deleteMsg) . '</div>';
     }
     if ($users && is_array($users)) {
         if (isset($_GET['search']) && $_GET['search'] !== '') {
@@ -140,21 +296,6 @@ if (!isset($_SESSION['user_email'])) {
 <div class="user-stats-bar" style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:950px;margin:0 auto 10px auto;padding-left:0;padding-right:0;gap:10px;">
     <div class="user-stats">
         <?php echo 'Total users: ' . $totalUsers ; ?>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-        <form method="get" class="search-form" style="margin-bottom:0;">
-            <div class="search-input-wrapper">
-                <input type="text" name="search" placeholder="Search username or email..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>" class="search-input">
-            </div>
-            <button type="submit" class="search-btn">Search</button>
-        </form>
-        <button type="button" class="search-btn add-btn-center" onclick="openUserModal(null)">Add</button>
-            <?php if (isset($_SESSION['user_rule']) && $_SESSION['user_rule'] === 'admin'): ?>
-                <a href="/account" class="search-btn" style="background:#197278; color:#fff;">Account Management</a>
-            <?php endif; ?>
-            <form method="get" action="index.php" style="display:inline; margin-left:8px;">
-                <button type="submit" name="logout" value="1" class="search-btn" style="background:#197278; color:#fff;">Log out</button>
-            </form>
     </div>
 </div>
 
@@ -275,7 +416,7 @@ if (!isset($_SESSION['user_email'])) {
     </table>
 </div>
 
-<div style="margin-top: 16px; width: 100%; max-width: 950px; margin: 10px auto 0 auto;">
+<div style="margin-top: 16px; width: 100%; max-width: 950px; margin: -1px auto 0 auto;">
     <div class="pagination-container">
         <div class="pagination-bar">
             <?php
