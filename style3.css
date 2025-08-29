@@ -473,3 +473,7 @@ body {
   color: #bdbdbd;
   font-size: 18px;
 }
+.page-btn[disabled], .page-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed !important;
+}

@@ -35,7 +35,6 @@ if ($search !== '') {
 	$filteredAccounts = array_values($filteredAccounts);
 	if (count($filteredAccounts) === 0) {
 		$searchError = 'No matching account found: ' . htmlspecialchars($search);
-		// Không thay đổi $accounts, giữ nguyên bảng đầy đủ
 	} else {
 		$accounts = $filteredAccounts;
 		$total = count($accounts);
@@ -313,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			</table>
 		</div>
 		<!-- Pagination bar -->
-		<div class="pagination-container" style="width:100%;max-width:950px;margin:10px auto 0 auto;box-sizing:border-box;text-align:right;">
+		<div class="pagination-container" style="width:100%;max-width:950px;margin:9px auto 0 auto;box-sizing:border-box;text-align:right;">
 			<div class="pagination-bar" style="display:inline-flex;align-items:center;gap:8px;">
 			<?php
 			$queryStr = '';

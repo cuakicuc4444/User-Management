@@ -28,14 +28,12 @@ if (isset($_GET['logout'])) {
     header('Location: http://localhost/sign_in');
     exit();
 }
-// Luôn kiểm tra đăng nhập và chặn cache với mọi request
 if (!isset($_SESSION['user_email'])) {
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
     header('Location: http://localhost/sign_in');
     exit();
 }
-// --- Xử lý xóa user (delete_id) phải đặt trước khi xuất HTML ---
 if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
     $deleteId = intval($_GET['delete_id']);
     if ($deleteId <= 0) {
