@@ -18,8 +18,8 @@
 			.step.active { display: block; }
 			.code-inputs { display: flex; gap: 12px; justify-content: center; margin: 24px 0 18px 0; }
 			.code-inputs input { width: 48px; height: 48px; text-align: center; font-size: 1.5rem; border: 1.5px solid #bdbdbd; border-radius: 8px; background: #fafaff; transition: border 0.2s; }
-			.code-inputs input:focus { border: 1.5px solid #a78bfa; outline: none; background: #fff; }
-			.verify-btn, .save-btn { width: 100%; padding: 13px 0; background: #a78bfa; color: #fff; border: none; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 18px; transition: background 0.2s; }
+			.code-inputs input:focus { border: 1.5px solid #8b7eff; outline: none; background: #fff; }
+			.verify-btn, .save-btn { width: 100%; padding: 13px 0; background: #8b7eff; color: #fff; border: none; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 18px; transition: background 0.2s; }
 			.verify-btn:disabled, .save-btn:disabled { background: #d1c4e9; cursor: not-allowed; }
 			.resend-row { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
 			.resend-link { color: #7b61ff; text-decoration: underline; cursor: pointer; font-weight: 500; font-size: 15px; }
@@ -29,7 +29,7 @@
 			.input-label { font-weight: 500; margin-bottom: 6px; display: block; }
 			.input-row { position: relative; }
 			.input-row input { width: 85%; padding: 12px 44px 12px 12px; border: 1.5px solid #bdbdbd; border-radius: 8px; font-size: 16px; background: #fafaff; }
-			.input-row input:focus { border: 1.5px solid #a78bfa; outline: none; background: #fff; }
+			.input-row input:focus { border: 1.5px solid #8b7eff; outline: none; background: #fff; }
 			.toggle-pass { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #bbb; font-size: 20px; }
 			.back-link { display: block; text-align: center; margin-top: 18px; color: #7b61ff; text-decoration: underline; font-size: 15px; cursor: pointer; }
 		</style>
@@ -62,7 +62,7 @@
 								<input type="text" maxlength="1" inputmode="numeric" class="code-digit" autocomplete="off">
 							</div>
 							<div class="resend-row">
-								<input type="checkbox" id="notReceived" style="accent-color:#a78bfa;">
+								<input type="checkbox" id="notReceived" style="accent-color:#8b7eff;">
 								<label for="notReceived" style="font-size:15px;color:#444;">Didn't receive a code?</label>
 								<span class="resend-link" id="resendCode">Resend</span>
 							</div>

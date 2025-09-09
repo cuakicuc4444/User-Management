@@ -35,6 +35,21 @@ type Account struct {
 	CreatedAt time.Time  `json:"created_at"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
+type App struct {
+	ID           int      `json:"id"`
+	Icon         []string `json:"icon"`
+	Name         string   `json:"name"`
+	Version      string   `json:"version"`
+	UpdatedDate  string   `json:"updated_date"`
+	Category     string   `json:"category"`
+	Developer    string   `json:"developer"`
+	GooglePlayID string   `json:"google_play_id"`
+	SizeMB       int      `json:"size_mb"`
+	Installs     string   `json:"installs"`
+	Description  string   `json:"description"`
+	DownloadLink string   `json:"download_link"`
+	Screenshots  []string `json:"screenshots"`
+}
 
 var db *sql.DB
 
@@ -47,6 +62,55 @@ func enableCORS(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 	return false
+}
+
+func getApp(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	rows, err := db.Query("SELECT id, icon, name, version, updated_date, category, developer, google_play_id, size_mb, installs, description, download_link, screenshots FROM app")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	var app []App
+	for rows.Next() {
+		var a App
+		var icon sql.NullString
+		var downloadLink sql.NullString
+		var screenshots sql.NullString
+		if err := rows.Scan(&a.ID, &icon, &a.Name, &a.Version, &a.UpdatedDate, &a.Category, &a.Developer, &a.GooglePlayID, &a.SizeMB, &a.Installs, &a.Description, &downloadLink, &screenshots); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// Gán download_link
+		if downloadLink.Valid {
+			a.DownloadLink = downloadLink.String
+		} else {
+			a.DownloadLink = ""
+		}
+		if icon.Valid && icon.String != "" {
+			var arr []string
+			if err := json.Unmarshal([]byte(icon.String), &arr); err == nil {
+				a.Icon = arr
+			} else {
+				a.Icon = []string{icon.String}
+			}
+		} else {
+			a.Icon = nil
+		}
+		if screenshots.Valid && screenshots.String != "" {
+			var arr []string
+			if err := json.Unmarshal([]byte(screenshots.String), &arr); err == nil {
+				a.Screenshots = arr
+			} else {
+				a.Screenshots = []string{screenshots.String}
+			}
+		} else {
+			a.Screenshots = nil
+		}
+		app = append(app, a)
+	}
+	json.NewEncoder(w).Encode(app)
 }
 
 func isAccountEmailValid(email string) bool {
@@ -505,6 +569,17 @@ func main() {
 		}
 		if r.Method == "DELETE" {
 			deleteAccount(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/app/get", func(w http.ResponseWriter, r *http.Request) {
+		if enableCORS(w, r) {
+			return
+		}
+		if r.Method == "GET" {
+			getApp(w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}

@@ -149,7 +149,7 @@
 }
 /* --- Base layout, font, background, main-center giống style.css --- */
 body {
-	font-family: 'Segoe UI', Arial, sans-serif;
+	font-family: 'Segoe UI', Poppins, sans-serif;
 	background: #fff;
 	margin: 0;
 	padding: 0;
@@ -207,7 +207,7 @@ body {
 .search-btn, .add-btn-center, .search-form .search-btn, .user-stats-bar a.search-btn {
 	padding: 6px 10px;
 	height: 28px;
-	background: #a78bfa;
+	background: #8b7eff;
 	color: #fff;
 	border: none;
 	border-radius: 4px;
@@ -282,7 +282,7 @@ body {
 }
 .search-btn {
 	padding: 6px 10px;
-	background: #a78bfa;
+	background: #8b7eff;
 	color: #fff;
 	border: none;
 	border-radius: 4px;
@@ -340,7 +340,7 @@ body {
 	overflow: hidden;
 }
 .avatar-xs {
-	color: #a78bfa;
+	color: #8b7eff;
 	text-align: center;
 	line-height: 32px;
 	width: 32px;
@@ -386,7 +386,7 @@ body {
 	background: #f6f8fb;
 	color: #232323;
 }
-.text-info { color: #a78bfa; }
+.text-info { color: #8b7eff; }
 .text-danger { color: #e53e3e; }
 	#custom-toast-container {
 		position: fixed;
@@ -449,9 +449,9 @@ body {
   gap: 8px;
 }
 .page-btn {
-  border: 1.5px solid #a78bfa;
+  border: 1.5px solid #8b7eff;
   background: #fff;
-  color: #a78bfa;
+  color: #8b7eff;
   padding: 3px 10px;
   border-radius: 3px;
   font-size: 15px;
@@ -460,7 +460,7 @@ body {
   transition: background 0.2s, color 0.2s;
 }
 .page-btn.active, .page-btn.active:focus {
-  background: #a78bfa;
+  background: #8b7eff;
   color: #fff;
   font-weight: bold;
   border: none;
