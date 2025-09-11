@@ -5,7 +5,7 @@ if (!$isAdmin) {
 	header('Location: /index.php');
 	exit();
 }
-
+// Lấy danh sách account từ API chỉ 1 lần
 $apiUrl = 'http://localhost:8080/accounts/get';
 $ch = curl_init($apiUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -15,6 +15,9 @@ $accounts = json_decode($response, true);
 if (!is_array($accounts)) $accounts = [];
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $searchError = '';
+// Thông báo lỗi search
+$searchError = '';
+// Phân trang
 $perPage = 5;
 $page = isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 0 ? intval($_GET['page']) : 1;
 $total = count($accounts);
@@ -52,39 +55,34 @@ if ($search !== '') {
 </head>
 <body>
 <!-- Sidebar -->
-<div class="layout-flex">
-  <div id="sidebar" class="sidebar expanded">
-        <div class="sidebar-logo" style="display:flex;align-items:center;justify-content:center;height:35px;padding:12px 0;">
-            <img src="/user/logo.png" alt="Logo" style="height:40px;width:auto;max-width:80%;object-fit:contain;" onerror="this.style.display='none'">
-            </div>
-        <div class="sidebar-divider" style="height:0;border-bottom:1px solid #e0e0e0;opacity:0.7;margin:0 0 0 1px;"></div>
-      <?php
-        $currentPage = basename($_SERVER['PHP_SELF']);
-      ?>
-      <ul style="list-style:none;padding:0;margin:0;">
-          <li class="sidebar-menu-item<?php echo ($currentPage === 'index.php' || $currentPage === 'user.php') ? ' active' : ''; ?>">
-              <a href="/user" class="<?php echo ($currentPage === 'index.php' || $currentPage === 'user.php') ? 'active' : ''; ?>" style="display:flex;align-items:center;padding:12px 24px 12px 28px;color:inherit;text-decoration:none;font-size:17px;font-weight:500;gap:12px;">
-                  <i class="ri-user-3-line" style="font-size:18px;"></i>
-                  <span class="sidebar-label">User</span>
-              </a>
-          </li>
-          <?php if (isset($_SESSION['user_rule']) && $_SESSION['user_rule'] === 'admin'): ?>
-          <li class="sidebar-menu-item<?php echo ($currentPage === 'account.php') ? ' active' : ''; ?>">
-              <a href="/account" class="<?php echo ($currentPage === 'account.php') ? 'active' : ''; ?>" style="display:flex;align-items:center;padding:12px 24px 12px 28px;color:inherit;text-decoration:none;font-size:17px;font-weight:500;gap:12px;">
-                  <i class="ri-user-settings-line" style="font-size:18px;"></i>
-                  <span class="sidebar-label">Account</span>
-              </a>
-          </li>
-          <li class="sidebar-menu-item<?php echo ($currentPage === 'app.php') ? ' active' : ''; ?>">
-              <a href="/app" class="<?php echo ($currentPage === 'app.php') ? 'active' : ''; ?>" style="display:flex;align-items:center;padding:12px 24px 12px 28px;color:inherit;text-decoration:none;font-size:17px;font-weight:500;gap:12px;">
-                  <i class="ri-user-3-line" style="font-size:18px;"></i>
-                  <span class="sidebar-label">App</span>
-              </a>
-          </li>
-          <?php endif; ?>
-      </ul>
-  </div>
-  <div class="main-content" id="mainContent">
+<div id="sidebar" style="position:fixed;top:0;left:0;height:100vh;width:250px;background:#a78bfa;color:#fff;z-index:10000;box-shadow:2px 0 16px #0002;display:none;flex-direction:column;transition:all 0.2s;">
+    <div style="padding:24px 0 12px 28px;font-size:13px;letter-spacing:2px;color:#bfc8e2;font-weight:bold;">Main</div>
+    <ul style="list-style:none;padding:0;margin:0;">
+        <li style="margin-bottom:6px;">
+            <button id="tableMenuBtn" style="width:100%;background:none;border:none;outline:none;color:#fff;display:flex;align-items:center;padding:12px 24px 12px 28px;font-size:17px;font-weight:500;border-radius:24px 0 0 24px;gap:12px;cursor:pointer;transition:background 0.15s;">
+                <i class="ri-table-line" style="font-size:20px;"></i>
+                Table
+                <i id="tableMenuArrow" class="ri-arrow-down-s-line" style="font-size:22px;margin-left:auto;transition:transform 0.2s;"></i>
+            </button>
+            <ul id="tableSubMenu" style="list-style:none;padding:0 0 0 38px;margin:0;display:none;">
+                <li>
+                    <a href="/user" style="display:flex;align-items:center;padding:10px 0;color:#fff;text-decoration:none;font-size:16px;gap:10px;">
+                        <i class="ri-user-3-line" style="font-size:18px;"></i>
+                        User Management
+                    </a>
+                </li>
+                <?php if (isset($_SESSION['user_rule']) && $_SESSION['user_rule'] === 'admin'): ?>
+                <li>
+                    <a href="/account" style="display:flex;align-items:center;padding:10px 0;color:#fff;text-decoration:none;font-size:16px;gap:10px;">
+                        <i class="ri-user-settings-line" style="font-size:18px;"></i>
+                        Account Management
+                    </a>
+                </li>
+                <?php endif; ?>
+            </ul>
+        </li>
+    </ul>
+</div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const menuBtn = document.getElementById('menuBtn');
@@ -122,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Menu icon (hamburger) -->
     <div style="display:flex;align-items:center;gap:10px;">
         <button id="menuBtn" style="background:none;border:none;outline:none;cursor:pointer;padding:0 8px 0 0;display:flex;align-items:center;">
-            <i class="ri-menu-line" style="font-size:28px;color:#38487c;"></i>
+            <i class="ri-menu-line" style="font-size:28px;color:#a78bfa;"></i>
         </button>
     </div>
     <!-- Search, Add, Avatar group -->
@@ -133,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </form>
         <button type="button" class="search-btn" style="margin-right:8px;" onclick="openAccountModal(null)">Add</button>
         <div class="avatar-dropdown" style="position:relative;">
-            <span id="avatarDropdownBtn" class="avatar avatar-xs avatar-rounded" style="background:#e6f4ff;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px;color:#7b61ff;cursor:pointer;border:2px solid #8b7eff;">
+            <span id="avatarDropdownBtn" class="avatar avatar-xs avatar-rounded" style="background:#e6f4ff;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px;color:#7b61ff;cursor:pointer;border:2px solid #a78bfa;">
                 <?php echo mb_strtoupper(mb_substr($_SESSION['user_name'], 0, 1, 'UTF-8'), 'UTF-8'); ?>
             </span>
             <div id="avatarDropdownMenu" style="display:none;position:absolute;right:0;top:44px;min-width:260px;background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);padding:20px 0 10px 0;z-index:100;">
@@ -150,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </a>
                 <a href="#" style="display:flex;align-items:center;gap:12px;padding:8px 24px;color:#222;text-decoration:none;font-size:15px;">
                     <span style="font-size:18px;"><i class="ri-mail-line"></i></span> Mail Inbox                </a>
-                <a href="/account_setting" style="display:flex;align-items:center;gap:12px;padding:8px 24px;color:#222;text-decoration:none;font-size:15px;">
+                <a href="#" style="display:flex;align-items:center;gap:12px;padding:8px 24px;color:#222;text-decoration:none;font-size:15px;">
                     <span style="font-size:18px;"><i class="ri-settings-3-line"></i></span> Account Settings
                 </a>
                 <a href="/sign_in?logout=1" style="display:flex;align-items:center;gap:12px;padding:8px 24px 14px 24px;color:#e44a8b;text-decoration:none;font-size:15px;">
@@ -161,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 <script>
+// Sidebar toggle
 const menuBtn = document.getElementById('menuBtn');
 const sidebar = document.getElementById('sidebar');
 let sidebarVisible = false;
@@ -168,12 +167,14 @@ menuBtn.addEventListener('click', function() {
     sidebarVisible = !sidebarVisible;
     sidebar.style.display = sidebarVisible ? 'flex' : 'none';
 });
+// Đóng sidebar khi click ra ngoài (nâng cao)
 document.addEventListener('click', function(e) {
     if (sidebarVisible && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
         sidebar.style.display = 'none';
         sidebarVisible = false;
     }
 });
+// Avatar dropdown logic
 document.addEventListener('DOMContentLoaded', function() {
     var avatarBtn = document.getElementById('avatarDropdownBtn');
     var dropdown = document.getElementById('avatarDropdownMenu');
@@ -223,10 +224,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	</div>
 </div>
 <div class="main-center">
-    <h2 style="text-align:left; color:#222; margin:18px auto 8px auto; font-size:1.5rem; font-family:'Segoe UI', Poppins, sans-serif; font-weight:bold; max-width:950px; width:100%;">
-            Account Management
-        </a>
-    </h2>
+	<h2 style="text-align:center; color:#222; margin:32px auto 12px auto; font-size:2.8rem; font-family:'Georgia',serif; font-weight:bold;">
+		<a href="<?php echo strtok($_SERVER['REQUEST_URI'], '?'); ?>" style="color:inherit;text-decoration:none;cursor:pointer;">
+			Account Management
+		</a>
+	</h2>
 	<div class="user-stats-bar" style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:950px;margin:0 auto 10px auto;padding-left:0;padding-right:0;gap:10px;">
 		<div class="user-stats">
 			<?php echo 'Total accounts: ' . count($accounts); ?>
@@ -290,13 +292,13 @@ document.addEventListener('DOMContentLoaded', function() {
 				echo '<td>' . $email . '</td>';
 				echo '<td>';
 				if (strtolower($status) === 'active') {
-					echo '<a href="#" class="text-info fs-14 lh-1 tooltip-hover" data-tooltip="Edit" style="text-decoration:none;" onclick="openAccountModal(' . $rowData . ');return false;"><i class="ri-edit-line" style="font-size:22px;"></i></a> ';
-					echo '<a href="#" class="text-danger fs-14 lh-1 tooltip-hover" data-tooltip="Delete" style="text-decoration:none;" onclick="showAccountDeleteConfirm(' . $acc['id'] . ');return false;"><i class="ri-delete-bin-5-line" style="font-size:22px;"></i></a>';
+					echo '<a href="#" class="text-info fs-14 lh-1 tooltip-hover" data-tooltip="Edit" onclick="openAccountModal(' . $rowData . ');return false;"><i class="ri-edit-line" style="font-size:22px;"></i></a> ';
+					echo '<a href="#" class="text-danger fs-14 lh-1 tooltip-hover" data-tooltip="Delete" onclick="showAccountDeleteConfirm(' . $acc['id'] . ');return false;"><i class="ri-delete-bin-5-line" style="font-size:22px;"></i></a>';
 				} else if ($isDeleted) {
-					echo '<a href="#" class="text-info fs-14 lh-1 tooltip-hover" data-tooltip="View (Deleted)" style="pointer-events:auto;text-decoration:none;" onclick="openAccountModal(' . $rowData . ', true);return false;"><i class="ri-eye-line" style="font-size:22px;"></i></a>';
+					echo '<a href="#" class="text-info fs-14 lh-1 tooltip-hover" data-tooltip="View (Deleted)" style="pointer-events:auto;" onclick="openAccountModal(' . $rowData . ', true);return false;"><i class="ri-eye-line" style="font-size:22px;"></i></a>';
 				} else {
-					echo '<a href="#" class="text-info fs-14 lh-1 tooltip-hover" data-tooltip="Edit" style="text-decoration:none;" onclick="openAccountModal(' . $rowData . ');return false;"><i class="ri-edit-line" style="font-size:22px;"></i></a> ';
-					echo '<a href="#" class="text-danger fs-14 lh-1 tooltip-hover" data-tooltip="Delete" style="text-decoration:none;" onclick="showAccountDeleteConfirm(' . $acc['id'] . ');return false;"><i class="ri-delete-bin-5-line" style="font-size:22px;"></i></a>';
+					echo '<a href="#" class="text-info fs-14 lh-1 tooltip-hover" data-tooltip="Edit" onclick="openAccountModal(' . $rowData . ');return false;"><i class="ri-edit-line" style="font-size:22px;"></i></a> ';
+					echo '<a href="#" class="text-danger fs-14 lh-1 tooltip-hover" data-tooltip="Delete" onclick="showAccountDeleteConfirm(' . $acc['id'] . ');return false;"><i class="ri-delete-bin-5-line" style="font-size:22px;"></i></a>';
 				}
 				echo '</td>';
 				echo '</tr>';
@@ -308,9 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			?>
 			</tbody>
 			</table>
-			
 		</div>
-		
 		<!-- Pagination bar -->
 		<div class="pagination-container" style="width:100%;max-width:950px;margin:9px auto 0 auto;box-sizing:border-box;text-align:right;">
 			<div class="pagination-bar" style="display:inline-flex;align-items:center;gap:8px;">

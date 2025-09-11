@@ -1,13 +1,13 @@
 body {
-	font-family: 'Segoe UI', Poppins, sans-serif;
+	font-family: 'Segoe UI', Arial, sans-serif;
 }
 body, input, button, label, .login-box, .login-box label, .login-box input, .login-box button, .login-box .btn-primary, .login-box .form-check-label, .login-box .text-muted, .login-box .text-primary, .login-box .text-success {
-	font-family: 'Segoe UI', 'Poppins', 'Helvetica Neue', Poppins, Helvetica, sans-serif;
+	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
 	font-size: 16px;
 	font-weight: 400;
 }
 .login-box > div:first-child, .login-box h2, .login-box h1 {
-	font-family: 'Segoe UI', 'Poppins', 'Helvetica Neue', Poppins, Helvetica, sans-serif;
+	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
 	font-size: 2rem;
 	font-weight: 600;
 	color: #000;
@@ -24,12 +24,12 @@ body, input, button, label, .login-box, .login-box label, .login-box input, .log
 .login-box input[type="text"],
 .login-box input[type="password"] {
 	font-size: 16px;
-	font-family: 'Segoe UI', 'Poppins', 'Helvetica Neue', Poppins, Helvetica, sans-serif;
+	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
 }
 .login-box .btn-primary {
 	font-size: 18px;
 	font-weight: 600;
-	font-family: 'Segoe UI', 'Poppins', 'Helvetica Neue', Poppins, Helvetica, sans-serif;
+	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
 }
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
@@ -82,7 +82,7 @@ input[type="password"]::before {
 }
 .login-box input[type="text"]:focus,
 .login-box input[type="password"]:focus {
-	border: 1.5px solid #8b7eff;
+	border: 1.5px solid #a78bfa;
 	outline: none;
 }
 .login-box input.email-valid {
@@ -144,7 +144,7 @@ input[type="password"]::before {
 }
 .login-box .btn-primary {
 	width: 100%;
-	background: #8b7eff;
+	background: #a78bfa;
 	color: #fff;
 	border: none;
 	border-radius: 8px;
@@ -155,7 +155,7 @@ input[type="password"]::before {
 	margin-bottom: 10px;
 	cursor: pointer;
 	transition: background 0.2s;
-	box-shadow: 0 2px 8px #8b7eff22;
+	box-shadow: 0 2px 8px #a78bfa22;
 }
 .login-box .btn-primary:hover {
 	background: #7c3aed;

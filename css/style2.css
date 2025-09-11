@@ -1,5 +1,5 @@
 body {
-	font-family: 'Segoe UI', Arial, sans-serif;
+	font-family: 'Segoe UI', Poppins, sans-serif;
 }
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
@@ -17,7 +17,7 @@ input[type="password"]::before {
 	display: none !important;
 }
 body, input, button, label, .login-box, .login-box label, .login-box input, .login-box button, .login-box .btn-primary, .login-box .form-check-label, .login-box .text-muted, .login-box .text-primary, .login-box .text-success {
-	font-family: 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+	font-family: 'Segoe UI', 'Poppins', 'Helvetica Neue', Poppins, Helvetica, sans-serif;
 	font-size: 16px;
 	font-weight: 400;
 }
@@ -58,7 +58,7 @@ body, input, button, label, .login-box, .login-box label, .login-box input, .log
 }
 .login-box input[type="text"]:focus,
 .login-box input[type="password"]:focus {
-	border: 1.5px solid #a78bfa;
+	border: 1.5px solid #8b7eff;
 	outline: none;
 }
 .login-box .input-group {
@@ -113,7 +113,7 @@ body, input, button, label, .login-box, .login-box label, .login-box input, .log
 }
 .login-box .btn-primary {
 	width: 100%;
-	background: #a78bfa;
+	background: #8b7eff;
 	color: #fff;
 	border: none;
 	border-radius: 8px;
@@ -124,7 +124,7 @@ body, input, button, label, .login-box, .login-box label, .login-box input, .log
 	margin-bottom: 10px;
 	cursor: pointer;
 	transition: background 0.2s;
-	box-shadow: 0 2px 8px #a78bfa22;
+	box-shadow: 0 2px 8px #8b7eff22;
 }
 .login-box .btn-primary:hover {
 	background: #7c3aed;
